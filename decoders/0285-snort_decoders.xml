@@ -34,13 +34,32 @@
   <prematch>^[**] [\d+:\d+:\d+] </prematch>
 </decoder>
 
+<!-- This fixes an issue that arises from the snort2 decoder below of alerts that trigger with no ports and wont extract data correctly.
+     Examples:
+     - snort: [136:1:1] (spp_reputation) packets blacklisted [Classification: Potentially Bad Traffic] [Priority: 2] {ICMP} 10.1.1.1 -> 8.8.8.8
+-->
+<decoder name="snort3">
+   <parent>snort</parent>
+   <type>ids</type>
+   <prematch>^[\d+:\d+:\d+] \(\S+\) </prematch>
+   <regex>[(\d+:\d+:\d+)] (\.+) </regex>
+   <regex>(\S+) -> (\S+)</regex>
+   <order>id,data,srcip,dstip</order>
+   <fts>name,id,srcip,dstip</fts>
+</decoder>
+
+<!-- This allows the decoder to grab rule description and srcport and dstport.
+     Examples:
+     - snort: [1:3668:14] SERVER-MYSQL client authentication bypass attempt [Classification: Misc Attack] [Priority: 2] {TCP} 10.0.0.1:33724 -> 10.0.5.1:3306
+-->
+
 <decoder name="snort2">
    <parent>snort</parent>
    <type>ids</type>
-   <prematch>^[**] |^[\d+:\d+:\d+] </prematch>
-   <regex>^[**] [(\d+:\d+:\d+)] \.+ (\S+)\p*\d* -> </regex>
-   <regex>(\S+)|^[(\d+:\d+:\d+)] \.+ </regex>
-   <regex>(\S+)\p*\d* -> (\S+)</regex>
-   <order>id,srcip,dstip</order>
+   <prematch>^[\d+:\d+:\d+] </prematch>
+   <regex>[(\d+:\d+:\d+)] (\.+) </regex>
+   <regex>(\S+):(\S+) -> (\S+):(\S+)</regex>
+   <order>id,data,srcip,srcport,dstip,dstport</order>
    <fts>name,id,srcip,dstip</fts>
 </decoder>
+
